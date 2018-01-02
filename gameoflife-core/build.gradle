@@ -1,8 +1,13 @@
-apply plugin: 'java'
-apply plugin: 'code-quality'
+plugins {
+  id "com.rapidminer.code-quality" version "0.4.4"
+  id "java"
+}
 
 repositories {
     mavenCentral()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
 }
 
 dependencies {
@@ -13,42 +18,43 @@ dependencies {
 }
 
 configurations {
-    [pmd, findbugs]
+    [pmd]
 }
 
 dependencies {
     pmd 'pmd:pmd:4.2.5'
-    findbugs 'com.google.code.findbugs:findbugs:1.3.9'
 }
 
-task pmd << {
-    println 'Running PMD static code analysis'
-    ant {
-        taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask',
-                classpath: configurations.pmd.asPath)
+task pmd {
+    doLast {
+        println 'Running PMD static code analysis'
+        ant {
+            taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask',
+                    classpath: configurations.pmd.asPath)
 
-        taskdef(name: 'cpd', classname: 'net.sourceforge.pmd.cpd.CPDTask',
-                classpath: configurations.pmd.asPath)
+            taskdef(name: 'cpd', classname: 'net.sourceforge.pmd.cpd.CPDTask',
+                    classpath: configurations.pmd.asPath)
 
-        pmd(shortFilenames: 'true', failonruleviolation: 'false',
-                rulesetfiles: 'conf/pmd-rules.xml') {
-            formatter(type: 'xml', toFile: 'build/pmd.xml')
-            fileset(dir: "src/main/java") {
-                include(name: '**/*.java')
+            pmd(shortFilenames: 'true', failonruleviolation: 'false',
+                    rulesetfiles: 'conf/pmd-rules.xml') {
+                formatter(type: 'xml', toFile: 'build/pmd.xml')
+                fileset(dir: "src/main/java") {
+                    include(name: '**/*.java')
+                }
+                fileset(dir: "src/test/java") {
+                    include(name: '**/*.java')
+                }
             }
-            fileset(dir: "src/test/java") {
-                include(name: '**/*.java')
-            }
-        }
 
-        cpd(minimumTokenCount: '50', format: 'xml',
-                ignoreIdentifiers: 'true',
-                outputFile: 'build/cpd.xml') {
-            fileset(dir: "src/main/java") {
-                include(name: '**/*.java')
-            }
-            fileset(dir: "src/test/java") {
-                include(name: '**/*.java')
+            cpd(minimumTokenCount: '50', format: 'xml',
+                    ignoreIdentifiers: 'true',
+                    outputFile: 'build/cpd.xml') {
+                fileset(dir: "src/main/java") {
+                    include(name: '**/*.java')
+                }
+                fileset(dir: "src/test/java") {
+                    include(name: '**/*.java')
+                }
             }
         }
     }
